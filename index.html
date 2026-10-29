@@ -1,0 +1,2357 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Cansu Kuzu | Oyun Yerelleştirme & Çevirmen Portfolyosu</title>
+  
+  <!-- Google Yazı Tipleri (Modern & Gaming Fontlar) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Outfit:wght@300;400;500;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+  
+  <!-- İkon Kütüphanesi (Font Awesome) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <style>
+    /* ==========================================================================
+       1. GENEL DEĞİŞKENLER VE TEMA RENKLERİ (Siyah, Lacivert, Mor & Neon Vurgular)
+       ========================================================================== */
+    :root {
+      --bg-dark: #0a0b10;          /* Ana koyu siyah arka plan */
+      --bg-navy: #0d1226;          /* Koyu lacivert zemin */
+      --bg-card: rgba(22, 28, 56, 0.75); /* Kart arka planı (cam efekti) */
+      --purple-primary: #9d4edd;   /* Ana neon mor */
+      --purple-light: #c77dff;     /* Açık parlak mor */
+      --purple-dark: #5a189a;      /* Koyu mor */
+      --neon-cyan: #00f0ff;        /* Neon camgöbeği */
+      --neon-pink: #ff2a85;        /* Neon pembe aksan */
+      --text-white: #f8fafc;       /* Beyaz metin */
+      --text-muted: #94a3b8;       /* Soluk gri metin */
+      --border-glow: rgba(157, 78, 221, 0.4);
+      --font-body: 'Outfit', sans-serif;
+      --font-display: 'Orbitron', sans-serif;
+      --font-pixel: 'Press Start 2P', monospace;
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Sıfırlama ve Temel Kurallar */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      scroll-behavior: smooth;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 15% 20%, rgba(90, 24, 154, 0.3) 0%, transparent 40%),
+        radial-gradient(circle at 85% 65%, rgba(0, 240, 255, 0.15) 0%, transparent 40%),
+        linear-gradient(rgba(10, 11, 16, 0.95), rgba(13, 18, 38, 0.95));
+      background-attachment: fixed;
+      color: var(--text-white);
+      font-family: var(--font-body);
+      line-height: 1.6;
+      overflow-x: hidden;
+      min-height: 100vh;
+      min-height: 100dvh;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: 
+        linear-gradient(rgba(157, 78, 221, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(157, 78, 221, 0.05) 1px, transparent 1px);
+      background-size: 50px 50px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .container {
+      width: 90%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 15px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ==========================================================================
+       2. SİNEMATİK AÇILIŞ: PERDELERİN İÇİNDEN EKRANI İKİ ELLE AÇAN KOMİK SAVAŞÇI
+       (Tam 3 Saniye, Mobil ve Masaüstü Kusursuz Uyumlu, Donma/Taşma Yapmaz)
+       ========================================================================== */
+    #intro-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      width: 100%;
+      height: 100vh;
+      height: 100dvh; /* Mobilde dinamik adres çubuğu uyumu */
+      z-index: 99999;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      pointer-events: all;
+      overflow: hidden;
+      background: #030408;
+      touch-action: none; /* Mobilde açılış sırasında yanlışlıkla aşağı çekmeyi önler */
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+    }
+
+    /* Sinematik Geniş Ekran Barları (IMAX 2.39:1 Letterbox) */
+    .cinema-bar {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      height: 46px;
+      background: #000;
+      z-index: 45;
+      transition: transform 0.8s cubic-bezier(0.77, 0, 0.175, 1);
+      box-shadow: 0 0 25px rgba(0, 0, 0, 0.95);
+      will-change: transform;
+    }
+    .cinema-top { top: 0; border-bottom: 1px solid rgba(157, 78, 221, 0.4); }
+    .cinema-bottom { bottom: 0; border-top: 1px solid rgba(0, 240, 255, 0.4); }
+
+    /* Kamera Sarsıntısı (Mobilde GPU hızlandırmalı pürüzsüz titreme) */
+    #intro-overlay.rumble-light {
+      animation: screenRumbleLight 0.12s infinite alternate;
+    }
+    #intro-overlay.rumble-heavy {
+      animation: screenRumbleHeavy 0.06s infinite alternate;
+    }
+
+    @keyframes screenRumbleLight {
+      0% { transform: translate3d(-2px, 1px, 0) rotate(-0.2deg); }
+      100% { transform: translate3d(2px, -2px, 0) rotate(0.2deg); }
+    }
+    @keyframes screenRumbleHeavy {
+      0% { transform: translate3d(-4px, 3px, 0) rotate(-0.4deg); }
+      50% { transform: translate3d(3px, -3px, 0) rotate(0.4deg); }
+      100% { transform: translate3d(-3px, -2px, 0) rotate(-0.3deg); }
+    }
+
+    /* ÖNDEKİ PERDELER (Z-INDEX: 10) - Karakter bunların ARKASINDA / İÇİNDE yer alır */
+    .curtain-panel {
+      position: absolute;
+      top: 0;
+      width: 50.5%;
+      height: 100%;
+      background: radial-gradient(circle at center, #150f2f 0%, #05040d 100%);
+      transition: transform 0.35s ease-out;
+      z-index: 10;
+      box-shadow: inset 0 0 130px rgba(0, 0, 0, 0.95);
+      overflow: visible; /* Ellerin perde dışına taşabilmesi için kritik */
+      will-change: transform;
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+    }
+
+    .curtain-left {
+      left: 0;
+      border-right: 2px solid var(--purple-primary);
+    }
+
+    .curtain-right {
+      right: 0;
+      border-left: 2px solid var(--neon-cyan);
+    }
+
+    /* Karakter içeriden ittikçe perdelerin kademeli aralanması */
+    #intro-overlay.pry-stage-1 .curtain-left {
+      transform: translate3d(-24px, 0, 0);
+    }
+    #intro-overlay.pry-stage-1 .curtain-right {
+      transform: translate3d(24px, 0, 0);
+    }
+
+    #intro-overlay.pry-stage-2 .curtain-left {
+      transform: translate3d(-60px, 0, 0);
+    }
+    #intro-overlay.pry-stage-2 .curtain-right {
+      transform: translate3d(60px, 0, 0);
+    }
+
+    /* 3. Saniyede Perdelerin Hızla İki Yana Açılması */
+    #intro-overlay.open .curtain-left {
+      transform: translate3d(-100%, 0, 0);
+      transition: transform 0.85s cubic-bezier(0.77, 0, 0.175, 1);
+    }
+    #intro-overlay.open .curtain-right {
+      transform: translate3d(100%, 0, 0);
+      transition: transform 0.85s cubic-bezier(0.77, 0, 0.175, 1);
+    }
+    #intro-overlay.open .cinema-top {
+      transform: translate3d(0, -100%, 0);
+    }
+    #intro-overlay.open .cinema-bottom {
+      transform: translate3d(0, 100%, 0);
+    }
+
+    #intro-overlay.open .intro-character-box {
+      opacity: 0;
+      transform: translate3d(-50%, -50%, 0) scale(1.3);
+      transition: all 0.3s ease;
+      pointer-events: none;
+    }
+
+    /* ==========================================================================
+       ELLERİ PERDELERİN ARASINDA OLAN MEKANİZMA
+       (Organik, Çizgi Film / Anime Tarzı Sevimli Tombul Eller - Mekanik Olmayan Doğal Görünüm)
+       ========================================================================== */
+    .curtain-grip-hand {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 56px;
+      height: 70px;
+      z-index: 15;
+      filter: drop-shadow(0 5px 12px rgba(0, 0, 0, 0.8)) drop-shadow(0 0 8px rgba(157, 78, 221, 0.35));
+      pointer-events: none;
+      will-change: transform;
+    }
+
+    /* Sol perdenin kenarını sıkan el */
+    .grip-hand-left {
+      right: -24px;
+    }
+
+    /* Sağ perdenin kenarını sıkan el */
+    .grip-hand-right {
+      left: -24px;
+    }
+
+    /* ==========================================================================
+       KARAKTER SAHNESİ: PERDELERİN İÇİNDE / ARKASINDA (Z-INDEX: 6)
+       (Perdelerin arasındaki aralıktan siteye gelenlere perdeyi açmaya çalışır)
+       ========================================================================== */
+    .intro-character-box {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate3d(-50%, -50%, 0);
+      z-index: 6; /* Perdelerin arkasında/içinde */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      user-select: none;
+      pointer-events: none;
+      will-change: transform;
+    }
+
+    .funny-warrior-wrap {
+      width: 290px;
+      height: 250px;
+      position: relative;
+      will-change: transform;
+    }
+
+    /* Efor Titremeleri */
+    .funny-warrior-wrap.pull-stage-1 {
+      animation: funnyStrainVibration1 0.12s infinite alternate ease-in-out;
+    }
+    .funny-warrior-wrap.pull-stage-2 {
+      animation: funnyStrainVibration2 0.06s infinite alternate ease-in-out;
+    }
+
+    @keyframes funnyStrainVibration1 {
+      0% { transform: scale(1) translate3d(-2px, 0, 0); }
+      100% { transform: scale(1.02) translate3d(2px, -3px, 0); }
+    }
+    @keyframes funnyStrainVibration2 {
+      0% { transform: scale(1.04) translate3d(-4px, 2px, 0) rotate(-1deg); }
+      100% { transform: scale(1.07) translate3d(4px, -3px, 0) rotate(1deg); }
+    }
+
+    /* Komik Ter Damlacıkları & Efor Çizgileri */
+    .funny-sweat-burst {
+      position: absolute;
+      font-size: 24px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+      z-index: 20;
+    }
+    .sweat-left { top: 25px; left: 60px; }
+    .sweat-right { top: 25px; right: 60px; }
+    .effort-vein { top: 40px; left: 130px; font-size: 22px; color: #ff2a85; }
+
+    .funny-warrior-wrap.pull-stage-1 .funny-sweat-burst,
+    .funny-warrior-wrap.pull-stage-2 .funny-sweat-burst {
+      opacity: 1;
+      animation: sweatBounce 0.25s infinite alternate;
+    }
+
+    @keyframes sweatBounce {
+      0% { transform: translateY(0px) scale(0.9); }
+      100% { transform: translateY(-8px) scale(1.15); }
+    }
+
+    /* Perdeler Arasından Sızan Sinematik Volumetrik Işık Hüzmesi */
+    .volumetric-light-shaft {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 4px;
+      background: #fff;
+      box-shadow: 0 0 25px #00f0ff, 0 0 50px var(--purple-light);
+      opacity: 0.7;
+      z-index: 4; /* Karakterin ve perdelerin arkasından gelen ışık */
+      transition: width 0.3s ease, box-shadow 0.3s ease;
+      will-change: width, box-shadow;
+    }
+
+    #intro-overlay.pry-stage-1 .volumetric-light-shaft {
+      width: 48px;
+      background: radial-gradient(ellipse at center, #ffffff 0%, rgba(0, 240, 255, 0.95) 40%, rgba(157, 78, 221, 0.6) 80%, transparent 100%);
+      box-shadow: 0 0 60px #00f0ff, 0 0 120px #ff2a85;
+      opacity: 0.9;
+    }
+
+    #intro-overlay.pry-stage-2 .volumetric-light-shaft {
+      width: 120px;
+      background: radial-gradient(ellipse at center, #ffffff 0%, rgba(255, 255, 255, 0.95) 25%, rgba(0, 240, 255, 0.95) 65%, rgba(157, 78, 221, 0.8) 90%, transparent 100%);
+      box-shadow: 0 0 100px #ffffff, 0 0 180px #00f0ff, 0 0 250px #ff2a85;
+      opacity: 1;
+    }
+
+    /* Sinematik Açılış Flaşı */
+    .cinematic-open-flash {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle, #fff 0%, rgba(0, 240, 255, 0.85) 60%, transparent 100%);
+      opacity: 0;
+      z-index: 42;
+      pointer-events: none;
+      transition: opacity 0.35s ease-out;
+    }
+
+    .cinematic-open-flash.flash {
+      opacity: 1;
+    }
+
+    /* Durum Göstergesi (En Üst Katmanda - Z-Index: 50) */
+    .intro-status-container {
+      position: absolute;
+      bottom: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 50;
+      text-align: center;
+      user-select: none;
+      width: 90%;
+      max-width: 360px;
+    }
+
+    .intro-status {
+      background: rgba(13, 18, 38, 0.95);
+      padding: 12px 24px;
+      border-radius: 30px;
+      border: 1px solid var(--neon-cyan);
+      box-shadow: 0 0 30px rgba(0, 240, 255, 0.4);
+    }
+
+    .intro-status-text {
+      font-family: var(--font-pixel);
+      font-size: 0.78rem;
+      color: #fff;
+      letter-spacing: 1px;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .pull-progress-bar {
+      width: 100%;
+      max-width: 240px;
+      height: 10px;
+      background: #0d0f17;
+      border-radius: 5px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      margin: 0 auto;
+    }
+
+    .pull-progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--purple-primary), var(--neon-pink), var(--neon-cyan));
+      border-radius: 5px;
+      box-shadow: 0 0 15px var(--neon-cyan);
+      transition: width 0.05s linear;
+    }
+
+    .skip-intro-btn {
+      position: absolute;
+      top: max(20px, env(safe-area-inset-top));
+      right: max(20px, env(safe-area-inset-right));
+      z-index: 100;
+      background: rgba(22, 28, 56, 0.85);
+      color: var(--text-muted);
+      border: 1px solid var(--purple-primary);
+      padding: 8px 18px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-family: var(--font-display);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .skip-intro-btn:hover, .skip-intro-btn:active {
+      color: #fff;
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 15px rgba(0, 240, 255, 0.5);
+    }
+
+    /* ==========================================================================
+       MOBİL TELEFONLARA ÖZEL UYUM KURALLARI (@media max-width: 600px)
+       (Tüm efektlerin küçük ekranlarda da taşmadan, kasmadan çalışmasını sağlar)
+       ========================================================================== */
+    @media (max-width: 600px) {
+      .cinema-bar {
+        height: 28px;
+      }
+      .funny-warrior-wrap {
+        width: 230px;
+        height: 195px;
+        transform-origin: center center;
+      }
+      .curtain-grip-hand {
+        width: 44px;
+        height: 56px;
+      }
+      .grip-hand-left {
+        right: -18px;
+      }
+      .grip-hand-right {
+        left: -18px;
+      }
+      .intro-status-container {
+        bottom: 38px;
+        width: 88%;
+      }
+      .intro-status {
+        padding: 8px 16px;
+      }
+      .intro-status-text {
+        font-size: 0.65rem;
+        letter-spacing: 0.5px;
+      }
+      .pull-progress-bar {
+        height: 8px;
+      }
+      .skip-intro-btn {
+        top: max(12px, env(safe-area-inset-top));
+        right: max(12px, env(safe-area-inset-right));
+        padding: 6px 12px;
+        font-size: 0.72rem;
+      }
+
+      /* Mobilde perdelerin aralanma mesafesi ekran genişliğine orantılıdır */
+      #intro-overlay.pry-stage-1 .curtain-left {
+        transform: translate3d(-16px, 0, 0);
+      }
+      #intro-overlay.pry-stage-1 .curtain-right {
+        transform: translate3d(16px, 0, 0);
+      }
+      #intro-overlay.pry-stage-2 .curtain-left {
+        transform: translate3d(-40px, 0, 0);
+      }
+      #intro-overlay.pry-stage-2 .curtain-right {
+        transform: translate3d(40px, 0, 0);
+      }
+
+      #intro-overlay.pry-stage-1 .volumetric-light-shaft {
+        width: 32px;
+      }
+      #intro-overlay.pry-stage-2 .volumetric-light-shaft {
+        width: 80px;
+      }
+    }
+
+    /* ==========================================================================
+       3. ÜST GEZİNME ÇUBUĞU (NAVBAR & DİL SEÇİCİ)
+       ========================================================================== */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: rgba(10, 11, 16, 0.88);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(157, 78, 221, 0.25);
+      transition: var(--transition);
+    }
+
+    .nav-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 0;
+    }
+
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--font-display);
+      font-weight: 900;
+      font-size: 1.25rem;
+      letter-spacing: 1.5px;
+      color: #fff;
+    }
+
+    .brand-logo .dot {
+      color: var(--neon-cyan);
+      text-shadow: 0 0 10px var(--neon-cyan);
+    }
+
+    .brand-badge {
+      font-family: var(--font-pixel);
+      font-size: 0.55rem;
+      background: linear-gradient(135deg, var(--purple-primary), var(--purple-dark));
+      padding: 3px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--purple-light);
+      color: #fff;
+      box-shadow: 0 0 10px rgba(157, 78, 221, 0.5);
+    }
+
+    .nav-menu {
+      display: flex;
+      align-items: center;
+      list-style: none;
+      gap: 24px;
+    }
+
+    .nav-link {
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      position: relative;
+      transition: var(--transition);
+      padding: 6px 0;
+    }
+
+    .nav-link:hover, .nav-link.active {
+      color: #fff;
+      text-shadow: 0 0 8px rgba(199, 125, 255, 0.8);
+    }
+
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0%;
+      height: 2px;
+      background: linear-gradient(90deg, var(--purple-primary), var(--neon-cyan));
+      transition: var(--transition);
+      border-radius: 2px;
+    }
+
+    .nav-link:hover::after {
+      width: 100%;
+    }
+
+    .lang-switcher-btn {
+      background: rgba(22, 28, 56, 0.9);
+      border: 1px solid var(--purple-primary);
+      border-radius: 24px;
+      padding: 6px 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      color: #fff;
+      font-family: var(--font-display);
+      font-size: 0.8rem;
+      font-weight: 600;
+      transition: var(--transition);
+      box-shadow: 0 0 12px rgba(157, 78, 221, 0.25);
+    }
+
+    .lang-switcher-btn:hover {
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .lang-switcher-btn .active-flag {
+      color: var(--neon-cyan);
+      font-weight: 800;
+    }
+
+    .mobile-menu-toggle {
+      display: none;
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+
+    /* ==========================================================================
+       4. HERO (GİRİŞ) BÖLÜMÜ & OYUN YERELLEŞTİRME VİTRİNİ
+       ========================================================================== */
+    .hero-section {
+      padding: 70px 0 50px 0;
+      position: relative;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 40px;
+      align-items: center;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(90, 24, 154, 0.35);
+      border: 1px solid var(--purple-light);
+      padding: 6px 16px;
+      border-radius: 30px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 20px;
+      box-shadow: 0 0 15px rgba(157, 78, 221, 0.3);
+    }
+
+    .status-pulse {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #00ff88;
+      box-shadow: 0 0 10px #00ff88;
+      animation: pulseGlow 1.5s infinite;
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: 3.2rem;
+      font-weight: 900;
+      line-height: 1.15;
+      margin-bottom: 14px;
+      letter-spacing: -0.5px;
+    }
+
+    .hero-title .glow-text {
+      background: linear-gradient(135deg, #fff 20%, var(--purple-light) 60%, var(--neon-cyan) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 30px rgba(157, 78, 221, 0.35);
+    }
+
+    .hero-subtitle {
+      font-size: 1.25rem;
+      color: var(--purple-light);
+      font-weight: 600;
+      margin-bottom: 14px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .hero-desc {
+      font-size: 1.08rem;
+      color: var(--text-muted);
+      margin-bottom: 25px;
+      max-width: 580px;
+    }
+
+    .education-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(13, 18, 38, 0.85);
+      border-left: 3px solid var(--neon-cyan);
+      padding: 10px 16px;
+      border-radius: 0 8px 8px 0;
+      font-size: 0.95rem;
+      color: #e2e8f0;
+      margin-bottom: 30px;
+    }
+    .education-tag i {
+      color: var(--neon-cyan);
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 13px 26px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: var(--transition);
+      font-family: var(--font-display);
+      letter-spacing: 0.5px;
+      border: none;
+    }
+
+    .btn-neon-purple {
+      background: linear-gradient(135deg, var(--purple-primary), var(--purple-dark));
+      color: #fff;
+      border: 1px solid var(--purple-light);
+      box-shadow: 0 0 20px rgba(157, 78, 221, 0.45);
+    }
+    .btn-neon-purple:hover {
+      box-shadow: 0 0 30px rgba(157, 78, 221, 0.8);
+      transform: translateY(-2px);
+    }
+
+    .btn-neon-outline {
+      background: transparent;
+      color: #fff;
+      border: 1px solid var(--neon-cyan);
+      box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
+    }
+    .btn-neon-outline:hover {
+      background: rgba(0, 240, 255, 0.1);
+      box-shadow: 0 0 25px rgba(0, 240, 255, 0.5);
+      transform: translateY(-2px);
+    }
+
+    /* İnteraktif Oyun Yerelleştirme Simülatörü */
+    .loc-showcase-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-glow);
+      border-radius: 18px;
+      padding: 24px;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), 0 0 25px rgba(157, 78, 221, 0.2);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .loc-showcase-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: linear-gradient(90deg, var(--purple-primary), var(--neon-cyan), var(--neon-pink));
+    }
+
+    .loc-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .loc-card-title {
+      font-family: var(--font-pixel);
+      font-size: 0.68rem;
+      color: var(--neon-cyan);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .rpg-badge {
+      background: rgba(0, 240, 255, 0.15);
+      color: var(--neon-cyan);
+      border: 1px solid var(--neon-cyan);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.65rem;
+      font-family: var(--font-pixel);
+    }
+
+    .rpg-dialogue-box {
+      background: rgba(10, 11, 16, 0.9);
+      border: 2px solid var(--purple-primary);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 18px;
+      position: relative;
+    }
+
+    .dialogue-speaker {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .speaker-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 8px;
+      background: #181133;
+      border: 1px solid var(--neon-pink);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+    }
+
+    .speaker-meta {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .speaker-name {
+      font-family: var(--font-display);
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--neon-pink);
+    }
+
+    .dialogue-target-lang {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    .dialogue-text {
+      font-size: 0.96rem;
+      color: #fff;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 12px;
+      border-radius: 8px;
+      min-height: 72px;
+      border-left: 3px solid var(--purple-light);
+      transition: var(--transition);
+    }
+
+    .loc-controls {
+      display: flex;
+      gap: 10px;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .toggle-loc-btn {
+      flex: 1;
+      background: rgba(157, 78, 221, 0.2);
+      border: 1px solid var(--purple-primary);
+      color: #fff;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-family: var(--font-display);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: var(--transition);
+    }
+
+    .toggle-loc-btn:hover {
+      background: var(--purple-primary);
+      box-shadow: 0 0 15px rgba(157, 78, 221, 0.6);
+    }
+
+    .loc-stat-pill {
+      font-size: 0.75rem;
+      color: #00ff88;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-weight: 500;
+    }
+
+    /* ==========================================================================
+       5. BÖLÜM BAŞLIKLARI VE ORTAK KART DÜZENİ
+       ========================================================================== */
+    section {
+      padding: 70px 0;
+      position: relative;
+    }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: 45px;
+    }
+
+    .section-tag {
+      font-family: var(--font-pixel);
+      font-size: 0.72rem;
+      color: var(--neon-cyan);
+      letter-spacing: 1px;
+      display: inline-block;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+    }
+
+    .section-title {
+      font-family: var(--font-display);
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -0.5px;
+    }
+
+    .section-title span {
+      color: var(--purple-light);
+      text-shadow: 0 0 20px rgba(157, 78, 221, 0.5);
+    }
+
+    .section-divider {
+      width: 70px;
+      height: 4px;
+      background: linear-gradient(90deg, var(--purple-primary), var(--neon-cyan));
+      margin: 14px auto 0 auto;
+      border-radius: 2px;
+      box-shadow: 0 0 10px var(--neon-cyan);
+    }
+
+    .cyber-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-glow);
+      border-radius: 16px;
+      padding: 26px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+      transition: var(--transition);
+      position: relative;
+    }
+
+    .cyber-card:hover {
+      border-color: var(--purple-light);
+      box-shadow: 0 12px 30px rgba(157, 78, 221, 0.3);
+      transform: translateY(-4px);
+    }
+
+    /* ==========================================================================
+       6. HAKKIMDA & ÇALIŞMA DİLLERİ BÖLÜMÜ
+       ========================================================================== */
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+    }
+
+    .about-text-card p {
+      margin-bottom: 16px;
+      color: #e2e8f0;
+      font-size: 1.05rem;
+    }
+
+    .lang-stats-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-top: 10px;
+    }
+
+    .lang-item {
+      background: rgba(13, 18, 38, 0.7);
+      border: 1px solid rgba(157, 78, 221, 0.25);
+      border-radius: 10px;
+      padding: 14px 18px;
+      transition: var(--transition);
+    }
+
+    .lang-item:hover {
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
+    }
+
+    .lang-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .lang-name {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 1rem;
+    }
+
+    .lang-level {
+      font-size: 0.8rem;
+      font-family: var(--font-pixel);
+      color: var(--neon-pink);
+    }
+
+    .lang-bar {
+      height: 7px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .lang-progress {
+      height: 100%;
+      border-radius: 4px;
+      background: linear-gradient(90deg, var(--purple-primary), var(--neon-cyan));
+      box-shadow: 0 0 10px var(--neon-cyan);
+    }
+
+    /* ==========================================================================
+       7. PROJELERİM / ÇALIŞMALARIM BÖLÜMÜ
+       ========================================================================== */
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 30px;
+    }
+
+    .project-card {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      border: 1px solid var(--border-glow);
+    }
+
+    .project-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      font-family: var(--font-pixel);
+      color: var(--neon-cyan);
+      background: rgba(0, 240, 255, 0.12);
+      border: 1px solid var(--neon-cyan);
+      padding: 4px 10px;
+      border-radius: 6px;
+      margin-bottom: 16px;
+    }
+
+    .project-title {
+      font-family: var(--font-display);
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 12px;
+      line-height: 1.3;
+    }
+
+    .project-desc {
+      color: var(--text-muted);
+      font-size: 0.98rem;
+      line-height: 1.6;
+      margin-bottom: 10px;
+    }
+
+    .project-role-tag {
+      display: inline-block;
+      background: rgba(157, 78, 221, 0.15);
+      border-left: 2px solid var(--purple-light);
+      padding: 6px 12px;
+      border-radius: 0 6px 6px 0;
+      font-size: 0.85rem;
+      color: var(--purple-light);
+      margin-bottom: 16px;
+    }
+
+    /* ==========================================================================
+       8. BECERİLERİM BÖLÜMÜ (ENVANTER / INVENTORY)
+       ========================================================================== */
+    .skills-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 24px;
+    }
+
+    .skill-category-card {
+      border-top: 3px solid var(--purple-primary);
+    }
+
+    .skill-category-title {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 18px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .skill-category-title i {
+      color: var(--neon-cyan);
+    }
+
+    .skill-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .skill-badge {
+      background: rgba(13, 18, 38, 0.8);
+      border: 1px solid rgba(157, 78, 221, 0.35);
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      color: #e2e8f0;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: var(--transition);
+    }
+
+    .skill-badge:hover {
+      border-color: var(--neon-cyan);
+      color: #fff;
+      transform: translateY(-2px);
+      box-shadow: 0 0 12px rgba(0, 240, 255, 0.35);
+    }
+
+    /* ==========================================================================
+       9. DENEYİM BÖLÜMÜ (TIMELINE / QUEST LOG)
+       ========================================================================== */
+    .timeline-container {
+      position: relative;
+      max-width: 850px;
+      margin: 0 auto;
+    }
+
+    .timeline-container::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 30px;
+      width: 3px;
+      background: linear-gradient(to bottom, var(--purple-primary), var(--neon-cyan), transparent);
+      box-shadow: 0 0 10px var(--purple-primary);
+    }
+
+    .timeline-item {
+      position: relative;
+      margin-bottom: 30px;
+      padding-left: 75px;
+    }
+
+    .timeline-icon-wrap {
+      position: absolute;
+      left: 12px;
+      top: 0;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: #0a0b10;
+      border: 2px solid var(--neon-cyan);
+      box-shadow: 0 0 15px var(--neon-cyan);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--neon-cyan);
+      font-size: 0.9rem;
+      z-index: 2;
+    }
+
+    .timeline-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-glow);
+      border-radius: 14px;
+      padding: 20px 24px;
+    }
+
+    .timeline-type {
+      font-family: var(--font-pixel);
+      font-size: 0.65rem;
+      color: var(--neon-pink);
+      display: inline-block;
+      margin-bottom: 6px;
+    }
+
+    .timeline-org {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+
+    .timeline-role {
+      font-size: 1rem;
+      color: var(--purple-light);
+      font-weight: 600;
+    }
+
+    /* ==========================================================================
+       10. İLGİ ALANLARI / HOBİLER (HER BİRİ İLGİLİ EMOJİ İLE)
+       ========================================================================== */
+    .hobbies-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 20px;
+    }
+
+    .hobby-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-glow);
+      border-radius: 16px;
+      padding: 24px;
+      text-align: center;
+      transition: var(--transition);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .hobby-card:hover {
+      border-color: var(--neon-pink);
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(255, 42, 133, 0.25);
+    }
+
+    .hobby-emoji {
+      font-size: 3.2rem;
+      margin-bottom: 14px;
+      display: inline-block;
+      filter: drop-shadow(0 0 12px rgba(199, 125, 255, 0.4));
+      transition: transform 0.3s ease;
+    }
+
+    .hobby-card:hover .hobby-emoji {
+      transform: scale(1.15) rotate(5deg);
+    }
+
+    .hobby-title {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+
+    .hobby-desc {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* ==========================================================================
+       11. İLETİŞİM BÖLÜMÜ (MULTIPLAYER / CO-OP)
+       ========================================================================== */
+    .contact-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      align-items: center;
+    }
+
+    .contact-info-list {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .contact-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-glow);
+      padding: 18px 22px;
+      border-radius: 12px;
+      transition: var(--transition);
+    }
+
+    .contact-item:hover {
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 20px rgba(0, 240, 255, 0.25);
+      transform: translateX(6px);
+    }
+
+    .contact-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 10px;
+      background: rgba(13, 18, 38, 0.9);
+      border: 1px solid var(--purple-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      color: var(--neon-cyan);
+      flex-shrink: 0;
+    }
+
+    .contact-meta span {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .contact-meta a {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #fff;
+      transition: color 0.2s ease;
+    }
+
+    .contact-meta a:hover {
+      color: var(--neon-cyan);
+    }
+
+    .contact-badge-box {
+      background: radial-gradient(circle at center, rgba(90, 24, 154, 0.4) 0%, rgba(10, 11, 16, 0.8) 100%);
+      border: 2px dashed var(--purple-light);
+      border-radius: 20px;
+      padding: 35px;
+      text-align: center;
+    }
+
+    .contact-badge-box i {
+      font-size: 3rem;
+      color: var(--neon-cyan);
+      margin-bottom: 16px;
+      text-shadow: 0 0 20px var(--neon-cyan);
+    }
+
+    /* ==========================================================================
+       12. ALT BİLGİ (FOOTER)
+       ========================================================================== */
+    footer {
+      border-top: 1px solid rgba(157, 78, 221, 0.25);
+      padding: 30px 0;
+      text-align: center;
+      background: #06070a;
+      position: relative;
+    }
+
+    .footer-text {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .footer-text span {
+      color: var(--purple-light);
+      font-weight: 600;
+    }
+
+    /* ==========================================================================
+       13. RESPONSIVE / TELEFON UYUMLULUK AYARLARI (MEDIA QUERIES)
+       ========================================================================== */
+    @media (max-width: 992px) {
+      .hero-grid, .about-grid, .contact-grid {
+        grid-template-columns: 1fr;
+      }
+      .hero-title {
+        font-size: 2.5rem;
+      }
+      .hero-section {
+        padding: 50px 0 30px 0;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .nav-menu {
+        position: fixed;
+        top: 65px;
+        left: -100%;
+        width: 100%;
+        height: calc(100vh - 65px);
+        background: rgba(10, 11, 16, 0.98);
+        backdrop-filter: blur(20px);
+        flex-direction: column;
+        justify-content: center;
+        gap: 30px;
+        transition: left 0.4s ease;
+        z-index: 999;
+      }
+
+      .nav-menu.open {
+        left: 0;
+      }
+
+      .mobile-menu-toggle {
+        display: block;
+      }
+
+      .hero-title {
+        font-size: 2rem;
+      }
+
+      .section-title {
+        font-size: 1.8rem;
+      }
+
+      .projects-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .timeline-container::before {
+        left: 20px;
+      }
+
+      .timeline-item {
+        padding-left: 55px;
+      }
+
+      .timeline-icon-wrap {
+        left: 2px;
+        width: 34px;
+        height: 34px;
+        font-size: 0.8rem;
+      }
+
+      .hero-actions {
+        flex-direction: column;
+      }
+
+      .btn {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ==========================================================================
+       SİNEMATİK AÇILIŞ: PERDELERİN İÇİNDEN EKRANI AÇAN KOMİK SAVAŞÇI
+       (Tam 3 Saniye, Karakter Perdelerin İçinde/Arkasında, Elleri Perdelerin Arasında)
+       ========================================================================== -->
+  <div id="intro-overlay">
+    <!-- Sinematik Siyah Sinema Barları (IMAX 2.39:1 Oranı) -->
+    <div class="cinema-bar cinema-top"></div>
+    <div class="cinema-bar cinema-bottom"></div>
+
+    <!-- Arkadan Vuran Sinematik Volumetrik Işık Hüzmesi (Z-Index: 4) -->
+    <div class="volumetric-light-shaft" id="volumetricLightShaft"></div>
+
+    <!-- 1. PERDELERİN İÇİNDE/ARKASINDA DURAN KOMİK SAVAŞÇI (Z-INDEX: 6) -->
+    <div class="intro-character-box">
+      <div class="funny-warrior-wrap pull-stage-1" id="funnyWarriorWrap">
+        <!-- Efor Ter Damlacıkları & Damar İkonları -->
+        <span class="funny-sweat-burst sweat-left">💦</span>
+        <span class="funny-sweat-burst sweat-right">💦</span>
+        <span class="funny-sweat-burst effort-vein">💢</span>
+
+        <!-- SVG: Perdelerin Arkasından Bakan & İki Yana Doğru Asılan Komik Savaşçı -->
+        <svg viewBox="0 0 280 240" width="100%" height="100%">
+          <defs>
+            <linearGradient id="hornGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#ffe600" />
+              <stop offset="100%" stop-color="#ff7b00" />
+            </linearGradient>
+            <linearGradient id="armorGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#2a1d47" />
+              <stop offset="50%" stop-color="#4e2c80" />
+              <stop offset="100%" stop-color="#180e2b" />
+            </linearGradient>
+          </defs>
+
+          <!-- Karakter Arkasındaki Neon Enerji Halkası -->
+          <circle cx="140" cy="115" r="70" fill="none" stroke="rgba(0, 240, 255, 0.3)" stroke-width="2.5" stroke-dasharray="8 6" />
+
+          <!-- GÖVDE: Perdelerin İçinden Görünen Savaşçı Gövdesi -->
+          <path d="M 100 135 L 180 135 L 186 185 L 94 185 Z" fill="url(#armorGrad)" stroke="#9d4edd" stroke-width="2" />
+          <rect x="94" y="168" width="92" height="10" rx="3" fill="#111" stroke="#00f0ff" stroke-width="1.5" />
+          <circle cx="140" cy="173" r="5" fill="#ff2a85" />
+
+          <!-- KOLLAR: İki Yana Doğru Açılmış ve Perdelerin Arasına Uzanmış Kollar -->
+          <!-- Sol Kol: Omuzdan Çıkan Kumaş Kol ve Ön Kol -->
+          <path d="M 102 138 Q 50 134 20 122" stroke="#3b2260" stroke-width="15" stroke-linecap="round" fill="none" />
+          <path d="M 102 138 Q 50 134 20 122" stroke="#9d4edd" stroke-width="1.5" stroke-linecap="round" fill="none" />
+          <path d="M 32 126 L 8 120" stroke="#ffd5b8" stroke-width="11" stroke-linecap="round" fill="none" />
+
+          <!-- Sağ Kol: Omuzdan Çıkan Kumaş Kol ve Ön Kol -->
+          <path d="M 178 138 Q 230 134 260 122" stroke="#3b2260" stroke-width="15" stroke-linecap="round" fill="none" />
+          <path d="M 178 138 Q 230 134 260 122" stroke="#00f0ff" stroke-width="1.5" stroke-linecap="round" fill="none" />
+          <path d="M 248 126 L 272 120" stroke="#ffd5b8" stroke-width="11" stroke-linecap="round" fill="none" />
+
+          <!-- KAFA & KOMİK SAVAŞÇI YÜZÜ (Perdelerin Arasından Bakan İfade) -->
+          <circle cx="140" cy="98" r="36" fill="#ffe0bd" />
+
+          <!-- Şişmiş Kıpkırmızı Komik Yanaklar (Efordan Dolayı) -->
+          <ellipse cx="116" cy="108" rx="10" ry="6" fill="#ff3366" opacity="0.85" />
+          <ellipse cx="164" cy="108" rx="10" ry="6" fill="#ff3366" opacity="0.85" />
+
+          <!-- Komik Sıkılmış Gözler (> < Efor İfadesi) -->
+          <path d="M 118 92 L 127 99 L 118 106" fill="none" stroke="#1b1230" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+          <path d="M 162 92 L 153 99 L 162 106" fill="none" stroke="#1b1230" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+
+          <!-- Dişlerini Sıkarak İten Komik Ağız -->
+          <rect x="129" y="113" width="22" height="8" rx="4" fill="#ffffff" stroke="#111" stroke-width="1.8" />
+          <line x1="135" y1="113" x2="135" y2="121" stroke="#333" stroke-width="1.2" />
+          <line x1="140" y1="113" x2="140" y2="121" stroke="#333" stroke-width="1.2" />
+          <line x1="145" y1="113" x2="145" y2="121" stroke="#333" stroke-width="1.2" />
+
+          <!-- MİĞFER VE MİNİK SEVİMLİ BOYNUZLAR -->
+          <path d="M 104 88 Q 140 45 176 88 Q 166 66 140 62 Q 114 66 104 88 Z" fill="#2d1d4d" stroke="#9d4edd" stroke-width="2" />
+          <rect x="104" y="82" width="72" height="9" rx="3" fill="#ffe600" stroke="#b38600" stroke-width="1" />
+          <!-- Boynuzlar -->
+          <path d="M 110 80 Q 88 62 90 44 Q 104 58 114 74 Z" fill="url(#hornGlow)" stroke="#b38600" stroke-width="1.5" />
+          <path d="M 170 80 Q 192 62 190 44 Q 176 58 166 74 Z" fill="url(#hornGlow)" stroke="#b38600" stroke-width="1.5" />
+
+          <!-- Komik Saç Örgüleri -->
+          <path d="M 104 98 Q 90 120 92 142" stroke="#f48c06" stroke-width="5" stroke-linecap="round" fill="none" />
+          <circle cx="92" cy="144" r="3.5" fill="#00f0ff" />
+          <path d="M 176 98 Q 190 120 188 142" stroke="#f48c06" stroke-width="5" stroke-linecap="round" fill="none" />
+          <circle cx="188" cy="144" r="3.5" fill="#ff2a85" />
+        </svg>
+      </div>
+    </div>
+
+    <!-- 2. ÖNDEKİ PERDELER (Z-INDEX: 10) - ELLER PERDELERİN KENARINA KENETLİDİR -->
+    <!-- Sol Perde Kanadı -->
+    <div class="curtain-panel curtain-left">
+      <!-- SOL PERDENİN SAĞ KENARINI TUTAN ORGANİK SEVİMLİ EL (Perdelerin Arasında) -->
+      <div class="curtain-grip-hand grip-hand-left">
+        <svg viewBox="0 0 60 72" width="100%" height="100%">
+          <defs>
+            <linearGradient id="skinGradLeft" x1="100%" y1="20%" x2="0%" y2="80%">
+              <stop offset="0%" stop-color="#ffe9db" />
+              <stop offset="50%" stop-color="#ffd5b8" />
+              <stop offset="100%" stop-color="#fca886" />
+            </linearGradient>
+            <linearGradient id="cuffGradLeft" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#4d227b" />
+              <stop offset="100%" stop-color="#24103c" />
+            </linearGradient>
+          </defs>
+
+          <!-- 1. BİLEKLİK / MANŞET (Yumuşak kumaş kıvrımlı savaşçı bilekliği) -->
+          <path d="M 40 15 C 46 14, 55 16, 58 19 L 58 57 C 54 59, 45 61, 38 59 C 37 45, 38 29, 40 15 Z" 
+                fill="url(#cuffGradLeft)" stroke="#9d4edd" stroke-width="1.6" stroke-linejoin="round" />
+          <!-- Kumaş dikiş ve pile çizgileri -->
+          <path d="M 42 24 C 47 25, 53 26, 57 26.5" stroke="#c77dff" stroke-width="1.2" stroke-linecap="round" fill="none" opacity="0.7" />
+          <path d="M 40 48 C 45 49, 52 50, 57 49.5" stroke="#c77dff" stroke-width="1.2" stroke-linecap="round" fill="none" opacity="0.7" />
+          <circle cx="49" cy="37" r="3" fill="#ff2a85" opacity="0.8" />
+
+          <!-- 2. EL AYASI VE BAŞPARMAK (Perde kenarını içten/üstten kavrayan etli el dokusu) -->
+          <path d="M 42 17 C 34 14, 25 11, 20 13.5 C 16 15.5, 16 21, 22 23 C 28 25, 35 25, 41 27 Z" 
+                fill="url(#skinGradLeft)" stroke="#873e23" stroke-width="1.4" stroke-linejoin="round" />
+          <ellipse cx="20" cy="17" rx="3.5" ry="2.6" fill="#ff5e7e" opacity="0.45" />
+
+          <!-- 3. PERDENİN ÖNÜNE KIVRILMIŞ 4 SEVİMLİ TOMBUL PARMAK -->
+          <!-- 1. İşaret Parmağı -->
+          <g>
+            <path d="M 39 21 C 28 19.5, 14 20, 8.5 23 C 4.5 25.5, 4.5 31.5, 9 33 C 15 34.5, 27 33.5, 37 31 Z" 
+                  fill="url(#skinGradLeft)" stroke="#873e23" stroke-width="1.4" stroke-linejoin="round" />
+            <ellipse cx="9" cy="27.8" rx="3.8" ry="3.2" fill="#ff5e7e" opacity="0.5" />
+            <path d="M 22 22.5 C 21 26, 21 28, 22 31.5" stroke="#cf6244" stroke-width="1.1" stroke-linecap="round" fill="none" />
+            <path d="M 13 23.5 C 12 25.5, 12 27.5, 13 29.5" stroke="rgba(255,255,255,0.75)" stroke-width="1.1" stroke-linecap="round" fill="none" />
+          </g>
+
+          <!-- 2. Orta Parmak -->
+          <g>
+            <path d="M 37 31 C 25 30, 10 30.5, 5 33.5 C 1 36, 1 42.5, 6 44 C 12 45.5, 25 44.5, 36 42.5 Z" 
+                  fill="url(#skinGradLeft)" stroke="#873e23" stroke-width="1.4" stroke-linejoin="round" />
+            <ellipse cx="6.5" cy="38.5" rx="4" ry="3.4" fill="#ff5e7e" opacity="0.5" />
+            <path d="M 20 32 C 19 36, 19 39, 20 42.5" stroke="#cf6244" stroke-width="1.1" stroke-linecap="round" fill="none" />
+            <path d="M 10 33.5 C 9 36, 9 38.5, 10 41" stroke="rgba(255,255,255,0.75)" stroke-width="1.1" stroke-linecap="round" fill="none" />
+          </g>
+
+          <!-- 3. Yüzük Parmak -->
+          <g>
+            <path d="M 36 42.5 C 26 41.5, 12 42, 7.5 44.5 C 3.5 47, 3.5 52.5, 8 54 C 14 55.5, 26 54.5, 35 52.5 Z" 
+                  fill="url(#skinGradLeft)" stroke="#873e23" stroke-width="1.4" stroke-linejoin="round" />
+            <ellipse cx="8.5" cy="49.2" rx="3.8" ry="3.2" fill="#ff5e7e" opacity="0.5" />
+            <path d="M 21 43.5 C 20 47, 20 50, 21 52.5" stroke="#cf6244" stroke-width="1.1" stroke-linecap="round" fill="none" />
+            <path d="M 12 44.5 C 11 47, 11 49, 12 51.5" stroke="rgba(255,255,255,0.75)" stroke-width="1.1" stroke-linecap="round" fill="none" />
+          </g>
+
+          <!-- 4. Serçe Parmak -->
+          <g>
+            <path d="M 35 52.5 C 27 52, 16 52.5, 11.5 54.5 C 7.5 56.5, 7.5 61.5, 12 62.8 C 17 64, 27 63, 34 60.5 Z" 
+                  fill="url(#skinGradLeft)" stroke="#873e23" stroke-width="1.4" stroke-linejoin="round" />
+            <ellipse cx="12.5" cy="58.8" rx="3.4" ry="2.8" fill="#ff5e7e" opacity="0.5" />
+            <path d="M 23 53.5 C 22 56.5, 22 59, 23 61.2" stroke="#cf6244" stroke-width="1.1" stroke-linecap="round" fill="none" />
+          </g>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Sağ Perde Kanadı -->
+    <div class="curtain-panel curtain-right">
+      <!-- SAĞ PERDENİN SOL KENARINI TUTAN ORGANİK SEVİMLİ EL (Perdelerin Arasında) -->
+      <div class="curtain-grip-hand grip-hand-right">
+        <svg viewBox="0 0 60 72" width="100%" height="100%">
+          <defs>
+            <linearGradient id="skinGradRight" x1="100%" y1="20%" x2="0%" y2="80%">
+              <stop offset="0%" stop-color="#ffe9db" />
+              <stop offset="50%" stop-color="#ffd5b8" />
+              <stop offset="100%" stop-color="#fca886" />
+            </linearGradient>
+            <linearGradient id="cuffGradRight" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#4d227b" />
+              <stop offset="100%" stop-color="#24103c" />
+            </linearGradient>
+          </defs>
+
+          <!-- Yatay ayna simetrisi: parmaklar sağ perdenin ön yüzüne kıvrılır -->
+          <g transform="translate(60, 0) scale(-1, 1)">
+            <!-- 1. BİLEKLİK / MANŞET -->
+            <path d="M 40 15 C 46 14, 55 16, 58 19 L 58 57 C 54 59, 45 61, 38 59 C 37 45, 38 29, 40 15 Z" 
+                  fill="url(#cuffGradRight)" stroke="#00f0ff" stroke-width="1.6" stroke-linejoin="round" />
+            <path d="M 42 24 C 47 25, 53 26, 57 26.5" stroke="#70efff" stroke-width="1.2" stroke-linecap="round" fill="none" opacity="0.7" />
+            <path d="M 40 48 C 45 49, 52 50, 57 49.5" stroke="#70efff" stroke-width="1.2" stroke-linecap="round" fill="none" opacity="0.7" />
+            <circle cx="49" cy="37" r="3" fill="#00f0ff" opacity="0.8" />
+
+            <!-- 2. EL AYASI VE BAŞPARMAK -->
+            <path d="M 42 17 C 34 14, 25 11, 20 13.5 C 16 15.5, 16 21, 22 23 C 28 25, 35 25, 41 27 Z" 
+                  fill="url(#skinGradRight)" stroke="#873e23" stroke-width="1.4" stroke-linejoin="round" />
+            <ellipse cx="20" cy="17" rx="3.5" ry="2.6" fill="#ff5e7e" opacity="0.45" />
+
+            <!-- 3. PERDENİN ÖNÜNE KIVRILMIŞ 4 SEVİMLİ TOMBUL PARMAK -->
+            <!-- 1. İşaret Parmağı -->
+            <g>
+              <path d="M 39 21 C 28 19.5, 14 20, 8.5 23 C 4.5 25.5, 4.5 31.5, 9 33 C 15 34.5, 27 33.5, 37 31 Z" 
+                    fill="url(#skinGradRight)" stroke="#873e23" stroke-width="1.4" stroke-linejoin="round" />
+              <ellipse cx="9" cy="27.8" rx="3.8" ry="3.2" fill="#ff5e7e" opacity="0.5" />
+              <path d="M 22 22.5 C 21 26, 21 28, 22 31.5" stroke="#cf6244" stroke-width="1.1" stroke-linecap="round" fill="none" />
+              <path d="M 13 23.5 C 12 25.5, 12 27.5, 13 29.5" stroke="rgba(255,255,255,0.75)" stroke-width="1.1" stroke-linecap="round" fill="none" />
+            </g>
+
+            <!-- 2. Orta Parmak -->
+            <g>
+              <path d="M 37 31 C 25 30, 10 30.5, 5 33.5 C 1 36, 1 42.5, 6 44 C 12 45.5, 25 44.5, 36 42.5 Z" 
+                    fill="url(#skinGradRight)" stroke="#873e23" stroke-width="1.4" stroke-linejoin="round" />
+              <ellipse cx="6.5" cy="38.5" rx="4" ry="3.4" fill="#ff5e7e" opacity="0.5" />
+              <path d="M 20 32 C 19 36, 19 39, 20 42.5" stroke="#cf6244" stroke-width="1.1" stroke-linecap="round" fill="none" />
+              <path d="M 10 33.5 C 9 36, 9 38.5, 10 41" stroke="rgba(255,255,255,0.75)" stroke-width="1.1" stroke-linecap="round" fill="none" />
+            </g>
+
+            <!-- 3. Yüzük Parmak -->
+            <g>
+              <path d="M 36 42.5 C 26 41.5, 12 42, 7.5 44.5 C 3.5 47, 3.5 52.5, 8 54 C 14 55.5, 26 54.5, 35 52.5 Z" 
+                    fill="url(#skinGradRight)" stroke="#873e23" stroke-width="1.4" stroke-linejoin="round" />
+              <ellipse cx="8.5" cy="49.2" rx="3.8" ry="3.2" fill="#ff5e7e" opacity="0.5" />
+              <path d="M 21 43.5 C 20 47, 20 50, 21 52.5" stroke="#cf6244" stroke-width="1.1" stroke-linecap="round" fill="none" />
+              <path d="M 12 44.5 C 11 47, 11 49, 12 51.5" stroke="rgba(255,255,255,0.75)" stroke-width="1.1" stroke-linecap="round" fill="none" />
+            </g>
+
+            <!-- 4. Serçe Parmak -->
+            <g>
+              <path d="M 35 52.5 C 27 52, 16 52.5, 11.5 54.5 C 7.5 56.5, 7.5 61.5, 12 62.8 C 17 64, 27 63, 34 60.5 Z" 
+                    fill="url(#skinGradRight)" stroke="#873e23" stroke-width="1.4" stroke-linejoin="round" />
+              <ellipse cx="12.5" cy="58.8" rx="3.4" ry="2.8" fill="#ff5e7e" opacity="0.5" />
+              <path d="M 23 53.5 C 22 56.5, 22 59, 23 61.2" stroke="#cf6244" stroke-width="1.1" stroke-linecap="round" fill="none" />
+            </g>
+          </g>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Sinematik Açılış Flaşı -->
+    <div class="cinematic-open-flash" id="cinematicOpenFlash"></div>
+
+    <!-- Girişi Atla Butonu -->
+    <button class="skip-intro-btn" id="skipIntroBtn">Atla ⏩</button>
+
+    <!-- Durum Göstergesi (Z-Index: 50, En Üst Katmanda) -->
+    <div class="intro-status-container">
+      <div class="intro-status">
+        <span class="intro-status-text" id="introStatusText">[00.8s] PERDELERİN ARASINDAN TUTTU... AÇMAYA ÇALIŞIYOR! 🧤</span>
+        <div class="pull-progress-bar">
+          <div class="pull-progress-fill" id="pullProgressFill"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ==========================================================================
+       ÜST MENÜ (NAVBAR) & DİL SEÇİCİ BUTONU (TR / EN)
+       ========================================================================== -->
+  <header>
+    <div class="container nav-container">
+      <!-- Gamer Tarzı İsim & Seviye -->
+      <a href="#" class="brand-logo">
+        <span>CANSU</span><span class="dot">.</span><span>KUZU</span>
+        <span class="brand-badge">LVL. 4</span>
+      </a>
+
+      <!-- Masaüstü Navigasyon Menüsü -->
+      <ul class="nav-menu" id="navMenu">
+        <li><a href="#hakkimda" class="nav-link" data-tr="Hakkımda" data-en="About Me">Hakkımda</a></li>
+        <li><a href="#projeler" class="nav-link" data-tr="Projelerim" data-en="Projects">Projelerim</a></li>
+        <li><a href="#beceriler" class="nav-link" data-tr="Becerilerim" data-en="Skills">Becerilerim</a></li>
+        <li><a href="#deneyim" class="nav-link" data-tr="Deneyim" data-en="Experience">Deneyim</a></li>
+        <li><a href="#hobiler" class="nav-link" data-tr="Hobilerim" data-en="Hobbies">Hobilerim</a></li>
+        <li><a href="#iletisim" class="nav-link" data-tr="İletişim" data-en="Contact">İletişim</a></li>
+      </ul>
+
+      <!-- Sağ Köşe: TR - EN Çeviri Değiştirme Butonu -->
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <button class="lang-switcher-btn" id="langSwitcherBtn" title="Dili Değiştir / Change Language">
+          <i class="fa-solid fa-globe" style="color: var(--neon-cyan);"></i>
+          <span id="langLabel"><span class="active-flag">TR</span> / EN</span>
+        </button>
+
+        <!-- Mobil Menü Butonu -->
+        <button class="mobile-menu-toggle" id="mobileMenuBtn" aria-label="Menüyü Aç">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+
+  <!-- ==========================================================================
+       HERO BÖLÜMÜ: OYUN YERELLEŞTİRME, YAZILI & SÖZLÜ ÇEVİRİ
+       ========================================================================== -->
+  <section class="hero-section">
+    <div class="container hero-grid">
+      <!-- Sol Taraf: Karşılama ve Tanıtım -->
+      <div class="hero-content">
+        <div class="status-badge">
+          <span class="status-pulse"></span>
+          <span data-tr="Yerelleştirme, Yazılı & Sözlü Çeviri Projelerine Açık" data-en="Open for Localization, Written & Oral Translation Quests">Yerelleştirme, Yazılı & Sözlü Çeviri Projelerine Açık</span>
+        </div>
+
+        <h1 class="hero-title">
+          <span data-tr="Merhaba, ben" data-en="Hello, I'm">Merhaba, ben</span> <br>
+          <span class="glow-text">Cansu KUZU</span>
+        </h1>
+
+        <!-- Yazılı ve Sözlü Çeviri Başlığı -->
+        <div class="hero-subtitle">
+          <i class="fa-solid fa-gamepad" style="color: var(--neon-pink);"></i>
+          <span data-tr="Oyun Yerelleştirmesi | Yazılı & Sözlü Çeviri" data-en="Game Localization | Written & Oral Translation">Oyun Yerelleştirmesi | Yazılı & Sözlü Çeviri</span>
+        </div>
+
+        <!-- Kullanıcının kendini anlatan tek cümlesi -->
+        <p class="hero-desc" data-tr="Oyun yerelleştirmesiyle ilgilenen bir çevirmen adayıyım." data-en="I am an aspiring translator passionate about game localization.">
+          Oyun yerelleştirmesiyle ilgilenen bir çevirmen adayıyım.
+        </p>
+
+        <!-- Okul & Bölüm Etiketi -->
+        <div class="education-tag">
+          <i class="fa-solid fa-graduation-cap"></i>
+          <div>
+            <strong data-tr="İstanbul Yeni Yüzyıl Üniversitesi" data-en="Istanbul Yeni Yuzyil University">İstanbul Yeni Yüzyıl Üniversitesi</strong> — 
+            <span data-tr="İngilizce Mütercim Tercümanlık (4. Sınıf)" data-en="English Translation & Interpreting (4th Year)">İngilizce Mütercim Tercümanlık (4. Sınıf)</span>
+          </div>
+        </div>
+
+        <!-- Butonlar -->
+        <div class="hero-actions">
+          <a href="#projeler" class="btn btn-neon-purple">
+            <i class="fa-solid fa-folder-open"></i>
+            <span data-tr="Projelerimi İncele" data-en="View Projects">Projelerimi İncele</span>
+          </a>
+          <a href="#iletisim" class="btn btn-neon-outline">
+            <i class="fa-solid fa-envelope"></i>
+            <span data-tr="İletişime Geç" data-en="Get in Touch">İletişime Geç</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Sağ Taraf: ÇEVİRMEN ÖZEL DOKUNUŞU (İnteraktif Oyun Yerelleştirme HUD Simülatörü) -->
+      <div class="loc-showcase-card">
+        <div class="loc-card-header">
+          <div class="loc-card-title">
+            <i class="fa-solid fa-terminal"></i>
+            <span data-tr="OYUN YERELLEŞTİRME DEMOSU" data-en="GAME LOCALIZATION DEMO">OYUN YERELLEŞTİRME DEMOSU</span>
+          </div>
+          <span class="rpg-badge">RPG HUD</span>
+        </div>
+
+        <!-- RPG Karakteri ve Diyalog Balonu -->
+        <div class="rpg-dialogue-box">
+          <div class="dialogue-speaker">
+            <div class="speaker-avatar">🧙‍♂️</div>
+            <div class="speaker-meta">
+              <span class="speaker-name" data-tr="Rehber Büyücü" data-en="Guide Mage">Rehber Büyücü</span>
+              <span class="dialogue-target-lang" id="dialogueLangIndicator">DİL: TR (Yerelleştirildi)</span>
+            </div>
+          </div>
+          <!-- Diyalog Metni (Butona basınca anında değişir) -->
+          <div class="dialogue-text" id="interactiveDialogueText">
+            "Kahramanım! Karanlık güçler yaklaşıyor. Kılıcını kuşan ve diyarı koru!"
+          </div>
+        </div>
+
+        <!-- Simülatör Aksiyon Çubuğu -->
+        <div class="loc-controls">
+          <button class="toggle-loc-btn" id="toggleDialogueBtn">
+            <i class="fa-solid fa-repeat"></i>
+            <span id="toggleDialogueBtnText" data-tr="Orijinal Metni Gör (EN)" data-en="See Translated (TR)">Orijinal Metni Gör (EN)</span>
+          </button>
+          <div class="loc-stat-pill">
+            <i class="fa-solid fa-check-circle"></i>
+            <span data-tr="CAT Onaylı" data-en="CAT Verified">CAT Onaylı</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ==========================================================================
+       1. HAKKIMDA BÖLÜMÜ (Hakkımda + Çalışma Dilleri)
+       ========================================================================== -->
+  <section id="hakkimda">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag" data-tr="// 01. BÖLÜM" data-en="// 01. SECTION">// 01. BÖLÜM</span>
+        <h2 class="section-title"><span data-tr="Hakkımda" data-en="About Me">Hakkımda</span></h2>
+        <div class="section-divider"></div>
+      </div>
+
+      <div class="about-grid">
+        <!-- Hakkımda Metin Kartı -->
+        <div class="cyber-card about-text-card">
+          <h3 style="font-family: var(--font-display); font-size: 1.4rem; color: var(--neon-cyan); margin-bottom: 16px;">
+            <i class="fa-solid fa-compass" style="margin-right: 8px;"></i>
+            <span data-tr="Keşif & Çeviri Tutkusu" data-en="Exploration & Passion for Translation">Keşif & Çeviri Tutkusu</span>
+          </h3>
+          <!-- Kullanıcının verdiği hakkımda bilgisi -->
+          <p data-tr="Yeni yerleri görmeyi ve yeni şeyler denemeyi seviyorum." data-en="I love seeing new places and trying new things.">
+            Yeni yerleri görmeyi ve yeni şeyler denemeyi seviyorum.
+          </p>
+          <p data-tr="İstanbul Yeni Yüzyıl Üniversitesi İngilizce Mütercim Tercümanlık 4. sınıf öğrencisiyim. Hem yazılı hem de sözlü çeviri alanındaki yetkinliğimle, diller arası köprü kurmayı ve özellikle interaktif oyun evrenlerini yerelleştirmeyi hedefliyorum." data-en="I am a 4th-year English Translation and Interpreting student at Istanbul Yeni Yuzyil University. With competence in both written and oral translation, I aim to build bridges between languages and localize interactive gaming universes.">
+            İstanbul Yeni Yüzyıl Üniversitesi İngilizce Mütercim Tercümanlık 4. sınıf öğrencisiyim. Hem yazılı hem de sözlü çeviri alanındaki yetkinliğimle, diller arası köprü kurmayı ve özellikle interaktif oyun evrenlerini yerelleştirmeyi hedefliyorum.
+          </p>
+          <p data-tr="Farklı kültürlerin dinamiklerini anlamak, diyalogları oyunculara ve okuyuculara en doğal ve etkileyici şekilde aktarmak en büyük motivasyonum." data-en="Understanding the dynamics of diverse cultures and conveying dialogues to gamers and audiences in the most natural and captivating manner is my greatest motivation.">
+            Farklı kültürlerin dinamiklerini anlamak, diyalogları oyunculara ve okuyuculara en doğal ve etkileyici şekilde aktarmak en büyük motivasyonum.
+          </p>
+        </div>
+
+        <!-- Çalışma Dilleri (tr, gb gibi kısaltmalar kaldırıldı) -->
+        <div class="cyber-card">
+          <h3 style="font-family: var(--font-display); font-size: 1.4rem; color: var(--purple-light); margin-bottom: 16px;">
+            <i class="fa-solid fa-language" style="margin-right: 8px;"></i>
+            <span data-tr="Çalışma Dillerim" data-en="Working Languages">Çalışma Dillerim</span>
+          </h3>
+
+          <div class="lang-stats-list">
+            <!-- Türkçe -->
+            <div class="lang-item">
+              <div class="lang-header">
+                <span class="lang-name">Türkçe</span>
+                <span class="lang-level" data-tr="Ana Dil" data-en="Native">Ana Dil</span>
+              </div>
+              <div class="lang-bar"><div class="lang-progress" style="width: 100%;"></div></div>
+            </div>
+
+            <!-- İngilizce -->
+            <div class="lang-item">
+              <div class="lang-header">
+                <span class="lang-name">İngilizce</span>
+                <span class="lang-level" data-tr="İleri Düzey / Profesyonel" data-en="Advanced / Professional">İleri Düzey / Profesyonel</span>
+              </div>
+              <div class="lang-bar"><div class="lang-progress" style="width: 95%;"></div></div>
+            </div>
+
+            <!-- İspanyolca (Başlangıç Seviyesi) -->
+            <div class="lang-item">
+              <div class="lang-header">
+                <span class="lang-name">İspanyolca</span>
+                <span class="lang-level" data-tr="Başlangıç Seviyesi" data-en="Beginner">Başlangıç Seviyesi</span>
+              </div>
+              <div class="lang-bar"><div class="lang-progress" style="width: 35%;"></div></div>
+            </div>
+
+            <!-- Japonca (Başlangıç) -->
+            <div class="lang-item">
+              <div class="lang-header">
+                <span class="lang-name">Japonca</span>
+                <span class="lang-level" data-tr="Başlangıç Seviyesi" data-en="Beginner">Başlangıç Seviyesi</span>
+              </div>
+              <div class="lang-bar"><div class="lang-progress" style="width: 30%;"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ==========================================================================
+       2. PROJELERİM / ÇALIŞMALARIM BÖLÜMÜ
+       ========================================================================== -->
+  <section id="projeler" style="background: rgba(13, 18, 38, 0.4);">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag" data-tr="// 02. GÖREVLER & PROJELER" data-en="// 02. QUESTS & PROJECTS">// 02. GÖREVLER & PROJELER</span>
+        <h2 class="section-title"><span data-tr="Projelerim & Çalışmalarım" data-en="Projects & Works">Projelerim & Çalışmalarım</span></h2>
+        <div class="section-divider"></div>
+      </div>
+
+      <div class="projects-grid">
+        <!-- 1. Proje: Sosyal Sorumluluk -->
+        <div class="cyber-card project-card">
+          <div class="project-badge">
+            <i class="fa-solid fa-leaf"></i>
+            <span data-tr="SOSYAL SORUMLULUK & SÜRDÜRÜLEBİLİRLİK" data-en="SOCIAL RESPONSIBILITY & SUSTAINABILITY">SOSYAL SORUMLULUK & SÜRDÜRÜLEBİLİRLİK</span>
+          </div>
+          <h3 class="project-title" data-tr='"Temiz Okullarla Temiz Gelecek" Projesi' data-en='"Clean Future with Clean Schools" Project'>
+            "Temiz Okullarla Temiz Gelecek" Projesi
+          </h3>
+          <p class="project-desc" data-tr="Çocuklara temizlik alışkanlıkları kazandırmayı amaçlayan bir Sosyal Sorumluluk ve Sürdürebilirlik projesi." data-en="A Social Responsibility and Sustainability project aimed at helping children develop hygiene and cleanliness habits.">
+            Çocuklara temizlik alışkanlıkları kazandırmayı amaçlayan bir Sosyal Sorumluluk ve Sürdürebilirlik projesi.
+          </p>
+        </div>
+
+        <!-- 2. Proje: UNESCO Yerelleştirme Projesi (Pembe Başlık: Proje Yönetimi) -->
+        <div class="cyber-card project-card">
+          <div class="project-badge" style="border-color: var(--neon-pink); color: var(--neon-pink); background: rgba(255, 42, 133, 0.12);">
+            <i class="fa-solid fa-globe"></i>
+            <span data-tr="WEB YERELLEŞTİRME & PROJE YÖNETİMİ" data-en="WEB LOCALIZATION & PROJECT MANAGEMENT">WEB YERELLEŞTİRME & PROJE YÖNETİMİ</span>
+          </div>
+          <h3 class="project-title">
+            UNESCO Website - SDG 4 Indicators Translation and Localization Project
+          </h3>
+          <div class="project-role-tag">
+            <i class="fa-solid fa-crown" style="margin-right: 6px;"></i>
+            <strong data-tr="Rol: Proje Yöneticisi" data-en="Role: Project Manager">Rol: Proje Yöneticisi</strong>
+          </div>
+          <p class="project-desc" data-tr='UNESCO websitesinde yer alan "Sustainable Development Goal 4" adlı bölümün çevrilmesi ve yerelleştirilmesi. Proje yöneticisi olarak görev aldım ve pre-editing, çeviri, yerelleştirme, post-editing süreçlerini yönettim.' data-en='Translation and localization of the "Sustainable Development Goal 4" section on the UNESCO website. Served as Project Manager directing pre-editing, translation, localization, and post-editing workflows.'>
+            UNESCO websitesinde yer alan "Sustainable Development Goal 4" adlı bölümün çevrilmesi ve yerelleştirilmesi. Proje yöneticisi olarak görev aldım ve pre-editing, çeviri, yerelleştirme, post-editing süreçlerini yönettim.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ==========================================================================
+       3. BECERİLERİM BÖLÜMÜ (ENVANTER / INVENTORY)
+       ========================================================================== -->
+  <section id="beceriler">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag" data-tr="// 03. CEPHANE & ARAÇLAR" data-en="// 03. ARSENAL & TOOLS">// 03. CEPHANE & ARAÇLAR</span>
+        <h2 class="section-title"><span data-tr="Becerilerim & Araçlar" data-en="Skills & Tools">Becerilerim & Araçlar</span></h2>
+        <div class="section-divider"></div>
+      </div>
+
+      <div class="skills-grid">
+        <!-- 1. Kategori: CAT Araçları -->
+        <div class="cyber-card skill-category-card">
+          <div class="skill-category-title">
+            <i class="fa-solid fa-screwdriver-wrench"></i>
+            <span data-tr="CAT Araçları" data-en="CAT Tools">CAT Araçları</span>
+          </div>
+          <div class="skill-tags">
+            <span class="skill-badge"><i class="fa-solid fa-bolt" style="color: var(--neon-cyan);"></i> SmartCAT</span>
+            <span class="skill-badge"><i class="fa-solid fa-cube" style="color: var(--purple-light);"></i> memoQ</span>
+            <span class="skill-badge"><i class="fa-solid fa-layer-group" style="color: var(--neon-pink);"></i> Phrase</span>
+            <span class="skill-badge"><i class="fa-solid fa-paw" style="color: #00ff88;"></i> Matecat</span>
+          </div>
+        </div>
+
+        <!-- 2. Kategori: Alt Yazı Çevirisi -->
+        <div class="cyber-card skill-category-card" style="border-top-color: var(--neon-cyan);">
+          <div class="skill-category-title">
+            <i class="fa-solid fa-closed-captioning"></i>
+            <span data-tr="Alt Yazı & Medya" data-en="Subtitling & Media">Alt Yazı & Medya</span>
+          </div>
+          <div class="skill-tags">
+            <span class="skill-badge"><i class="fa-solid fa-film" style="color: var(--neon-cyan);"></i> CaptionHub</span>
+            <span class="skill-badge"><i class="fa-solid fa-clock" style="color: var(--purple-light);"></i> Zamanlama & Senkron</span>
+            <span class="skill-badge"><i class="fa-solid fa-spell-check" style="color: #00ff88;"></i> Çeviri & Redaksiyon</span>
+          </div>
+        </div>
+
+        <!-- 3. Kategori: Yazılım & Kodlama -->
+        <div class="cyber-card skill-category-card" style="border-top-color: var(--neon-pink);">
+          <div class="skill-category-title">
+            <i class="fa-solid fa-code"></i>
+            <span data-tr="Yazılım & Kodlama" data-en="Software & Coding">Yazılım & Kodlama</span>
+          </div>
+          <div class="skill-tags">
+            <span class="skill-badge"><i class="fa-brands fa-python" style="color: #ffde57;"></i> Python Kodlama Dili (Başlangıç)</span>
+            <span class="skill-badge"><i class="fa-solid fa-file-excel" style="color: #00ff88;"></i> Microsoft Office Programları</span>
+          </div>
+        </div>
+
+        <!-- 4. Kategori: Çeviri Yetkinlikleri (Yazılı & Sözlü Çeviri) -->
+        <div class="cyber-card skill-category-card" style="border-top-color: #00ff88;">
+          <div class="skill-category-title">
+            <i class="fa-solid fa-list-check"></i>
+            <span data-tr="Çeviri & Süreç Yönetimi" data-en="Translation & Processes">Çeviri & Süreç Yönetimi</span>
+          </div>
+          <div class="skill-tags">
+            <span class="skill-badge" style="border-color: var(--neon-cyan);"><i class="fa-solid fa-pen-fancy" style="color: var(--neon-cyan);"></i> Yazılı Çeviri</span>
+            <span class="skill-badge" style="border-color: var(--neon-pink);"><i class="fa-solid fa-headset" style="color: var(--neon-pink);"></i> Sözlü Çeviri</span>
+            <span class="skill-badge"><i class="fa-solid fa-book-bookmark" style="color: var(--purple-light);"></i> Terminoloji Yönetimi</span>
+            <span class="skill-badge"><i class="fa-solid fa-pen-nib" style="color: #00ff88;"></i> Pre / Post-Editing</span>
+            <span class="skill-badge"><i class="fa-solid fa-diagram-project" style="color: #c77dff;"></i> Proje Yönetimi</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ==========================================================================
+       4. DENEYİM BÖLÜMÜ (TIMELINE / QUEST LOG)
+       ========================================================================== -->
+  <section id="deneyim" style="background: rgba(13, 18, 38, 0.4);">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag" data-tr="// 04. KARİYER GÖREVLERİ" data-en="// 04. CAREER QUESTS">// 04. KARİYER GÖREVLERİ</span>
+        <h2 class="section-title"><span data-tr="Deneyimlerim" data-en="Experience">Deneyimlerim</span></h2>
+        <div class="section-divider"></div>
+      </div>
+
+      <div class="timeline-container">
+        <!-- 1. Deneyim: Staj -->
+        <div class="timeline-item">
+          <div class="timeline-icon-wrap">
+            <i class="fa-solid fa-briefcase"></i>
+          </div>
+          <div class="timeline-card">
+            <span class="timeline-type" data-tr="STAJ" data-en="INTERNSHIP">STAJ</span>
+            <h3 class="timeline-org">Saykon Tercüme Hizmetleri</h3>
+            <div class="timeline-role" data-tr="Stajyer Çevirmen" data-en="Translation Intern">Stajyer Çevirmen</div>
+          </div>
+        </div>
+
+        <!-- 2. Deneyim: İş -->
+        <div class="timeline-item">
+          <div class="timeline-icon-wrap" style="border-color: var(--neon-pink); color: var(--neon-pink); box-shadow: 0 0 15px var(--neon-pink);">
+            <i class="fa-solid fa-chalkboard-user"></i>
+          </div>
+          <div class="timeline-card">
+            <span class="timeline-type" style="color: var(--neon-cyan);" data-tr="İŞ DENEYİMİ" data-en="WORK EXPERIENCE">İŞ DENEYİMİ</span>
+            <h3 class="timeline-org">Dilko Kids</h3>
+            <div class="timeline-role" data-tr="İngilizce Öğretmeni" data-en="English Teacher">İngilizce Öğretmeni</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ==========================================================================
+       5. İLGİ ALANLARIM / HOBİLERİM (HER BİRİ İLGİLİ EMOJİ İLE)
+       ========================================================================== -->
+  <section id="hobiler">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag" data-tr="// 05. YAN ETKİNLİKLER" data-en="// 05. SIDE QUESTS">// 05. YAN ETKİNLİKLER</span>
+        <h2 class="section-title"><span data-tr="İlgi Alanlarım & Hobilerim" data-en="Interests & Hobbies">İlgi Alanlarım & Hobilerim</span></h2>
+        <div class="section-divider"></div>
+      </div>
+
+      <div class="hobbies-grid">
+        <!-- Hobi 1: Müzik -->
+        <div class="hobby-card">
+          <span class="hobby-emoji">🎵</span>
+          <h3 class="hobby-title" data-tr="Müzik" data-en="Music">Müzik</h3>
+          <p class="hobby-desc" data-tr="Farklı türlerde ritimler keşfetmek ve müziğin çeviri yaratıcılığına kattığı enerjiyi hissetmek." data-en="Exploring rhythms across genres and feeling the creative boost music brings to translation.">
+            Farklı türlerde ritimler keşfetmek ve müziğin çeviri yaratıcılığına kattığı enerjiyi hissetmek.
+          </p>
+        </div>
+
+        <!-- Hobi 2: Oyun Oynamak -->
+        <div class="hobby-card">
+          <span class="hobby-emoji">🎮</span>
+          <h3 class="hobby-title" data-tr="Oyun Oynamak" data-en="Gaming">Oyun Oynamak</h3>
+          <p class="hobby-desc" data-tr="Hikaye odaklı oyunlar, RPG'ler ve yerelleştirme dinamiklerini birinci elden deneyimlemek." data-en="Story-driven games, RPGs, and experiencing localization choices firsthand.">
+            Hikaye odaklı oyunlar, RPG'ler ve yerelleştirme dinamiklerini birinci elden deneyimlemek.
+          </p>
+        </div>
+
+        <!-- Hobi 3: Yeni Diller Öğrenmek (Kadın Emojisi) -->
+        <div class="hobby-card">
+          <span class="hobby-emoji">👩‍🎓</span>
+          <h3 class="hobby-title" data-tr="Yeni Diller Öğrenmek" data-en="Learning New Languages">Yeni Diller Öğrenmek</h3>
+          <p class="hobby-desc" data-tr="Farklı kültürlerin dünyayı ifade etme biçimlerini keşfetmek, yeni dillerin yapılarını incelemek." data-en="Discovering how diverse cultures perceive the world through language structures.">
+            Farklı kültürlerin dünyayı ifade etme biçimlerini keşfetmek, yeni dillerin yapılarını incelemek.
+          </p>
+        </div>
+
+        <!-- Hobi 4: Kitap - Çizgi Roman Koleksiyonu -->
+        <div class="hobby-card">
+          <span class="hobby-emoji">📚</span>
+          <h3 class="hobby-title" data-tr="Kitap - Çizgi Roman Koleksiyonu" data-en="Books & Comic Collection">Kitap - Çizgi Roman Koleksiyonu</h3>
+          <p class="hobby-desc" data-tr="Çizgi romanlar, grafik romanlar ve edebi eserleri biriktirmek." data-en="Collecting comic books, graphic novels, and literature.">
+            Çizgi romanlar, grafik romanlar ve edebi eserleri biriktirmek.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ==========================================================================
+       6. İLETİŞİM BÖLÜMÜ (MULTIPLAYER / CO-OP)
+       ========================================================================== -->
+  <section id="iletisim" style="background: rgba(13, 18, 38, 0.4);">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag" data-tr="// 06. BAĞLANTI KUR" data-en="// 06. CONNECT">// 06. BAĞLANTI KUR</span>
+        <h2 class="section-title"><span data-tr="İletişime Geçin" data-en="Get in Touch">İletişime Geçin</span></h2>
+        <div class="section-divider"></div>
+      </div>
+
+      <div class="contact-grid">
+        <!-- Sol Taraf: İletişim Kanalları -->
+        <div class="contact-info-list">
+          <!-- Gmail -->
+          <div class="contact-item">
+            <div class="contact-icon">
+              <i class="fa-solid fa-envelope"></i>
+            </div>
+            <div class="contact-meta">
+              <span>GMAIL</span>
+              <a href="mailto:cansukzu9@gmail.com">cansukzu9@gmail.com</a>
+            </div>
+          </div>
+
+          <!-- GitHub -->
+          <div class="contact-item">
+            <div class="contact-icon">
+              <i class="fa-brands fa-github"></i>
+            </div>
+            <div class="contact-meta">
+              <span>GITHUB</span>
+              <a href="https://github.com/cansukuzu" target="_blank" rel="noopener noreferrer">github.com/cansukuzu</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sağ Taraf: Ortak Çalışma / Co-Op Çağrı Kartı -->
+        <div class="contact-badge-box">
+          <i class="fa-solid fa-headset"></i>
+          <h3 style="font-family: var(--font-display); font-size: 1.6rem; color: #fff; margin-bottom: 12px;" data-tr="Birlikte Çalışalım!" data-en="Let's Co-Op!">
+            Birlikte Çalışalım!
+          </h3>
+          <p style="color: var(--text-muted); font-size: 0.98rem; margin-bottom: 24px;" data-tr="Oyun yerelleştirme, yazılı & sözlü çeviri ve altyazı projeleriniz için bir e-posta uzağınızdayım. Yeni görevlerde buluşalım!" data-en="I am just an email away for your game localization, written & oral translation, and subtitling projects. Let's start the next quest together!">
+            Oyun yerelleştirme, yazılı & sözlü çeviri ve altyazı projeleriniz için bir e-posta uzağınızdayım. Yeni görevlerde buluşalım!
+          </p>
+          <a href="mailto:cansukzu9@gmail.com" class="btn btn-neon-purple">
+            <i class="fa-solid fa-paper-plane"></i>
+            <span data-tr="Mesaj Gönder" data-en="Send Message">Mesaj Gönder</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ==========================================================================
+       ALT BİLGİ (FOOTER)
+       ========================================================================== -->
+  <footer>
+    <div class="container">
+      <p class="footer-text">
+        © 2026 <span>Cansu KUZU</span>. <span data-tr="Oyun Yerelleştirmesi & Çeviri Portfolyosu" data-en="Game Localization & Translation Portfolio">Oyun Yerelleştirmesi & Çeviri Portfolyosu</span>.
+      </p>
+      <p style="font-size: 0.78rem; color: #64748b; margin-top: 6px;">
+        <span data-tr="Tasarım & Kodlama: Neon & Cyber Teması" data-en="Design & Code: Neon & Cyber Theme">Tasarım & Kodlama: Neon & Cyber Teması</span> 🎮
+      </p>
+    </div>
+  </footer>
+
+
+  <!-- ==========================================================================
+       JAVASCRIPT: TAM 3 SANİYELİK SİNEMATİK AÇILIŞ (MOBİL & MASAÜSTÜ OPTİMİZE)
+       ========================================================================== -->
+  <script>
+    /* --------------------------------------------------------------------------
+       1. TAM 3 SANİYELİK SİNEMATİK AÇILIŞ SİMÜLASYONU
+       (Karakter perdelerin arkasında/içinde, elleriyle aralıktan tutarak açar)
+       -------------------------------------------------------------------------- */
+    window.addEventListener('DOMContentLoaded', () => {
+      const overlay = document.getElementById('intro-overlay');
+      const progressFill = document.getElementById('pullProgressFill');
+      const statusText = document.getElementById('introStatusText');
+      const skipBtn = document.getElementById('skipIntroBtn');
+      const warriorWrap = document.getElementById('funnyWarriorWrap');
+      const openFlash = document.getElementById('cinematicOpenFlash');
+
+      let progress = 0;
+      const duration = 3000; // Tam 3.0 saniye
+      const intervalTime = 25;
+      const step = 100 / (duration / intervalTime);
+
+      const timer = setInterval(() => {
+        progress += step;
+        if (progress >= 100) {
+          progress = 100;
+          clearInterval(timer);
+          triggerScreenBurst();
+        }
+        progressFill.style.width = progress + '%';
+
+        // 0.0s - 0.8s: Elleri Perdelerin Arasına Sokup Tutma
+        if (progress > 12 && progress < 32) {
+          statusText.innerText = "[00.8s] PERDELERİN ARASINDAN TUTTU... AÇMAYA ÇALIŞIYOR! 🧤";
+        }
+        // 0.8s - 2.0s: İki Yana Doğru Asılma, Işığın Sızması, Hafif Sarsıntı
+        else if (progress >= 32 && progress < 68) {
+          overlay.classList.add('pry-stage-1');
+          overlay.classList.add('rumble-light');
+          statusText.innerText = "[01.8s] SİZİN İÇİN TÜM GÜCÜYLE İTİYOR... GNNNGH! 😤💦";
+        }
+        // 2.0s - 2.7s: Maksimum Efor, Yarıktan Yüzün Belirmesi, Şiddetli Sarsıntı
+        else if (progress >= 68 && progress < 90) {
+          overlay.classList.remove('pry-stage-1', 'rumble-light');
+          overlay.classList.add('pry-stage-2', 'rumble-heavy');
+          warriorWrap.classList.remove('pull-stage-1');
+          warriorWrap.classList.add('pull-stage-2');
+          statusText.innerText = "[02.6s] SON BİR GAYRET... NEREDEYSE AÇILDI! 🔥✨";
+        }
+        // 2.7s - 3.0s: Son İtme ve Açılış
+        else if (progress >= 90) {
+          statusText.innerText = "[03.0s] VE AÇILDI! HOŞ GELDİNİZ! ✨";
+        }
+      }, intervalTime);
+
+      // 3. Saniyede Perdelerin İki Yana Patlayarak Açılması
+      function triggerScreenBurst() {
+        clearInterval(timer);
+
+        // 1. Sinematik parıltı flaşı patlar
+        openFlash.classList.add('flash');
+
+        // 2. Sarsıntı biter, perdeler iki yana kayar
+        setTimeout(() => {
+          overlay.classList.remove('rumble-heavy', 'pry-stage-2');
+          overlay.classList.add('open');
+          // Mobilde hemen tıklanabilir kıl
+          overlay.style.pointerEvents = 'none';
+        }, 120);
+
+        // 3. Flaş yavaşça söner
+        setTimeout(() => {
+          openFlash.classList.remove('flash');
+        }, 550);
+
+        // 4. Overlay ekrandan temizlenir
+        setTimeout(() => {
+          overlay.style.display = 'none';
+        }, 950);
+      }
+
+      // Hızlı Atla Butonu (Dokunmatik ve tıklama uyumlu)
+      const handleSkip = (e) => {
+        if (e) e.preventDefault();
+        clearInterval(timer);
+        overlay.classList.remove('rumble-light', 'rumble-heavy', 'pry-stage-1', 'pry-stage-2');
+        overlay.classList.add('open');
+        overlay.style.pointerEvents = 'none';
+        setTimeout(() => {
+          overlay.style.display = 'none';
+        }, 250);
+      };
+
+      skipBtn.addEventListener('click', handleSkip);
+      skipBtn.addEventListener('touchend', handleSkip);
+    });
+
+    /* --------------------------------------------------------------------------
+       2. İNTERAKTİF OYUN YERELLEŞTİRME KUTUSU (RPG DİYALOG ÖNİZLEMESİ)
+       -------------------------------------------------------------------------- */
+    const dialogueBtn = document.getElementById('toggleDialogueBtn');
+    const dialogueText = document.getElementById('interactiveDialogueText');
+    const dialogueLangIndicator = document.getElementById('dialogueLangIndicator');
+    const toggleDialogueBtnText = document.getElementById('toggleDialogueBtnText');
+
+    let isEnglishDialogue = false;
+
+    dialogueBtn.addEventListener('click', () => {
+      isEnglishDialogue = !isEnglishDialogue;
+
+      if (isEnglishDialogue) {
+        dialogueText.innerText = '"Hero! The dark forces are approaching. Equip your blade and defend the realm!"';
+        dialogueLangIndicator.innerText = "DİL: EN (Source / Orijinal)";
+        dialogueLangIndicator.style.color = "var(--neon-pink)";
+        toggleDialogueBtnText.innerText = "TR Çevirisini Gör (Yerelleştir)";
+      } else {
+        dialogueText.innerText = '"Kahramanım! Karanlık güçler yaklaşıyor. Kılıcını kuşan ve diyarı koru!"';
+        dialogueLangIndicator.innerText = "DİL: TR (Yerelleştirildi)";
+        dialogueLangIndicator.style.color = "var(--neon-cyan)";
+        toggleDialogueBtnText.innerText = "Orijinal Metni Gör (EN)";
+      }
+    });
+
+    /* --------------------------------------------------------------------------
+       3. ÇOKLU DİL DEĞİŞTİRİCİSİ (TR / EN DİNAMİK GEÇİŞ DÜĞMESİ)
+       -------------------------------------------------------------------------- */
+    const langBtn = document.getElementById('langSwitcherBtn');
+    const langLabel = document.getElementById('langLabel');
+    let currentLang = 'tr';
+
+    langBtn.addEventListener('click', () => {
+      currentLang = currentLang === 'tr' ? 'en' : 'tr';
+
+      if (currentLang === 'tr') {
+        langLabel.innerHTML = '<span class="active-flag">TR</span> / EN';
+      } else {
+        langLabel.innerHTML = 'TR / <span class="active-flag">EN</span>';
+      }
+
+      document.querySelectorAll('[data-tr]').forEach(el => {
+        const text = el.getAttribute(`data-${currentLang}`);
+        if (text) {
+          el.innerText = text;
+        }
+      });
+    });
+
+    /* --------------------------------------------------------------------------
+       4. MOBİL MENÜ AÇMA / KAPAMA
+       -------------------------------------------------------------------------- */
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const navMenu = document.getElementById('navMenu');
+
+    mobileMenuBtn.addEventListener('click', () => {
+      navMenu.classList.toggle('open');
+      const icon = mobileMenuBtn.querySelector('i');
+      if (navMenu.classList.contains('open')) {
+        icon.classList.remove('fa-bars');
+        icon.classList.add('fa-xmark');
+      } else {
+        icon.classList.remove('fa-xmark');
+        icon.classList.add('fa-bars');
+      }
+    });
+
+    document.querySelectorAll('.nav-link').forEach(link => {
+      link.addEventListener('click', () => {
+        navMenu.classList.remove('open');
+        const icon = mobileMenuBtn.querySelector('i');
+        if (icon) {
+          icon.classList.remove('fa-xmark');
+          icon.classList.add('fa-bars');
+        }
+      });
+    });
+  </script>
+</body>
+</html>
